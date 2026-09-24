@@ -1,0 +1,18 @@
+workspace:
+  id: 752967cb-9f4c-4660-a8a4-fcd501f6d809
+
+localResources:
+  collections:
+    - PYMES_FE/postman/collections/auth (listo)/
+    - PYMES_FE/postman/collections/categorias (listo)/
+    - PYMES_FE/postman/collections/clientes (listo)/
+    - PYMES_FE/postman/collections/compras (listo)/
+    - PYMES_FE/postman/collections/empresas (listo)/
+    - PYMES_FE/postman/collections/facturas (listo)/
+    - PYMES_FE/postman/collections/metodos de pago (listo)/
+    - PYMES_FE/postman/collections/productos (listo)/
+    - PYMES_FE/postman/collections/proveedores (listo)/
+    - PYMES_FE/postman/collections/reportes (listo)/
+    - PYMES_FE/postman/collections/usuarios (listo)/
+  environments:
+    - PYMES_FE/postman/environments/PYMES_FE_Environment.environment.yaml

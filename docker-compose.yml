@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./PYMES_BE
+      dockerfile: Dockerfile
+    container_name: pymes_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - JWT_SECRET_KEY=pymes-jwt-secret-key-2026-secure-key-32bytes
+    restart: unless-stopped
+
+  frontend-movil:
+    build:
+      context: ./pymesoft-movil
+      dockerfile: Dockerfile
+    container_name: pymes_movil_web
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
