@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{base_url}}/categorias/"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Categoria prueba AA3"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('La creación sin token es rechazada con HTTP 401', function () { pm.response.to.have.status(401); });
+      pm.test('La respuesta indica que falta autenticación', function () { pm.expect(pm.response.json().code).to.eql('authorization_header_missing'); });
+    language: text/javascript
+order: 3000

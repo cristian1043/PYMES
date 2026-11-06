@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{base_url}}/auth/me"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Sin token: HTTP 401', function () { pm.response.to.have.status(401); });
+      pm.test('El error identifica autenticación requerida', function () { pm.expect(pm.response.json().code).to.eql('authorization_header_missing'); });
+    language: text/javascript
+order: 3000

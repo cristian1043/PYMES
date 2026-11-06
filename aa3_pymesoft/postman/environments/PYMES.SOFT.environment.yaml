@@ -1,0 +1,6 @@
+name: 'PYMES.SOFT '
+values:
+  - key: base_url
+    value: 'https://pymes-be.onrender.com/api'
+  - key: id_inexistente
+    value: '999999'

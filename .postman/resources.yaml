@@ -14,5 +14,7 @@ localResources:
     - PYMES_FE/postman/collections/proveedores (listo)/
     - PYMES_FE/postman/collections/reportes (listo)/
     - PYMES_FE/postman/collections/usuarios (listo)/
+    - PYMES_FE/postman/collections/AA1-EV01 - Pruebas basicas API PYMES.SOFT/
   environments:
-    - PYMES_FE/postman/environments/PYMES_FE_Environment.environment.yaml
+    - PYMES_FE/postman/environments/PYMES FE Environment.environment.yaml
+    - PYMES_FE/postman/environments/PYMES.SOFT - Local.environment.yaml

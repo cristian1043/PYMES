@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{base_url}}/categorias/{{id_inexistente}}"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El identificador inexistente responde HTTP 404', function () { pm.response.to.have.status(404); });
+      pm.test('La respuesta explica que no se encontró la categoría', function () { pm.expect(pm.response.json().mensaje).to.eql('Categoría no encontrada'); });
+    language: text/javascript
+order: 2000

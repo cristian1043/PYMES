@@ -1,0 +1,5 @@
+$kind: collection
+description: Colección de pruebas negativas/no destructivas basada en las rutas del repositorio PYMES_BE. Ejecutar solamente contra una instancia local/de pruebas. Registra resultados reales al correrla; no contiene datos de credenciales válidas.
+variables:
+  base_url: http://127.0.0.1:5000
+  id_inexistente: "999999"
