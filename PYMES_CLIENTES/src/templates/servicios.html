@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">🛠️ Catálogo de Servicios</h2>
+        <p class="text-muted mb-0">Conoce nuestros servicios profesionales y agenda tu cita en línea</p>
+    </div>
+    {% if portal.get('permitir_reservas', True) %}
+        <a href="{{ url_for('portal.reservar', slug=slug) }}" class="btn btn-portal">📅 Agendar Cita Ahora</a>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    {% for s in servicios %}
+    <div class="col-md-6">
+        <div class="card product-card h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-info text-dark">{{ s.get('categoria') or 'General' }}</span>
+                        <span class="text-muted small">⏱️ Duración estimada: {{ s.get('duracion_minutos') }} min</span>
+                    </div>
+                    <h4 class="fw-bold mb-2">{{ s.get('nombre') }}</h4>
+                    <p class="text-muted mb-3">{{ s.get('descripcion') or 'Servicio especializado ofrecido por nuestra empresa.' }}</p>
+                    {% if s.get('condiciones') %}
+                        <p class="small text-secondary mb-2"><strong>Condiciones:</strong> {{ s.get('condiciones') }}</p>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <div>
+                        {% if s.get('precio') is not none %}
+                            <span class="text-muted small d-block">Tarifa del servicio</span>
+                            <h4 class="fw-bold text-success mb-0">${{ "{:,.0f}".format(s.get('precio') or 0) }}</h4>
+                        {% endif %}
+                    </div>
+                    {% if portal.get('permitir_reservas', True) and s.get('requiere_reserva') and s.get('disponible') %}
+                        <a href="{{ url_for('portal.reservar', slug=slug, servicio_id=s.id) }}" class="btn btn-portal px-4">📅 Reservar Horario</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <div class="card p-5 border-0 shadow-sm">
+            <h4>No hay servicios publicados actualmente</h4>
+            <p class="text-muted mb-0">Contáctanos si deseas información sobre servicios personalizados.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

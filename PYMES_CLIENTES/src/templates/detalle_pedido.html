@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">🛍️ Detalle de Pedido {{ pedido.numero }}</h2>
+        <p class="text-muted mb-0">Realizado el {{ pedido.created_at }} · Estado: <span class="badge bg-primary">{{ pedido.estado }}</span></p>
+    </div>
+    <a href="{{ url_for('portal.mi_cuenta', slug=slug) }}" class="btn btn-outline-secondary btn-sm">← Volver a Mi Cuenta</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark text-white fw-bold">Productos de tu Pedido</div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in pedido.get('detalles', []) %}
+                        <tr>
+                            <td><code>{{ d.codigo_producto }}</code></td>
+                            <td class="fw-bold">{{ d.nombre_producto }}</td>
+                            <td class="text-center">{{ d.cantidad }}</td>
+                            <td class="text-end">${{ "{:,.2f}".format(d.precio_unitario or 0) }}</td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(d.subtotal or 0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end">Subtotal:</td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(pedido.subtotal or 0) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">Envío ({{ pedido.modalidad_entrega }}):</td>
+                            <td class="text-end">${{ "{:,.2f}".format(pedido.costo_envio or 0) }}</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td colspan="4" class="text-end fw-bold">TOTAL:</td>
+                            <td class="text-end fw-bold text-success">${{ "{:,.2f}".format(pedido.total or 0) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Historial de Estados -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light fw-bold">🕒 Seguimiento de tu Pedido</div>
+            <ul class="list-group list-group-flush">
+                {% for h in pedido.get('historial', []) %}
+                <li class="list-group-item d-flex justify-content-between align-items-center small">
+                    <div>
+                        <span class="badge bg-dark">{{ h.estado_nuevo }}</span>
+                        <span class="ms-2">{{ h.comentario }}</span>
+                    </div>
+                    <span class="text-muted">{{ h.fecha }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Pago en Línea / Sandbox y Cancelación -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white fw-bold">💳 Estado de Pago y Pasarela</div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Estado de Pago:</strong> <span class="badge {% if pedido.estado_pago == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ pedido.estado_pago }}</span></p>
+                <p class="mb-3 small text-muted">Método elegido: {{ pedido.metodo_pago }}</p>
+
+                {% if pedido.estado_pago != 'Pagado' and pedido.estado != 'Cancelado' %}
+                <form action="{{ url_for('portal.pagar_pedido_cliente', slug=slug, pedido_id=pedido.id) }}" method="POST" class="mb-3">
+                    <button type="submit" class="btn btn-success w-100 fw-bold">🔗 Generar Link de Pago Online</button>
+                </form>
+                {% endif %}
+
+                {% for c in pedido.get('cobros', []) %}
+                <div class="border rounded p-2 mb-2 bg-light small">
+                    <div><strong>Ref:</strong> <code>{{ c.referencia }}</code> · <span class="badge bg-info text-dark">{{ c.estado }}</span></div>
+                    {% if c.estado == 'PENDIENTE' %}
+                    <div class="mt-2 d-flex gap-1">
+                        <form action="{{ url_for('portal.simular_pago_pedido_cliente', slug=slug, pedido_id=pedido.id, cobro_id=c.id) }}" method="POST">
+                            <input type="hidden" name="resultado" value="APROBADA">
+                            <button type="submit" class="btn btn-xs btn-success btn-sm">✅ Simular Aprobado</button>
+                        </form>
+                        <form action="{{ url_for('portal.simular_pago_pedido_cliente', slug=slug, pedido_id=pedido.id, cobro_id=c.id) }}" method="POST">
+                            <input type="hidden" name="resultado" value="RECHAZADA">
+                            <button type="submit" class="btn btn-xs btn-outline-danger btn-sm">❌ Simular Rechazo</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if pedido.estado in ['Pendiente', 'Confirmado'] %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold text-danger">¿Deseas cancelar este pedido?</h6>
+                <p class="small text-muted">Puedes cancelar tu pedido mientras aún no haya sido enviado.</p>
+                <form action="{{ url_for('portal.cancelar_pedido_cliente', slug=slug, pedido_id=pedido.id) }}" method="POST">
+                    <input type="text" name="motivo" class="form-control form-control-sm mb-2" placeholder="Motivo de cancelación (opcional)">
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100 fw-bold">Cancelar Pedido</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

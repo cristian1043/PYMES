@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0 fw-bold">✨ Crear Cuenta de Cliente</h4>
+                <small class="opacity-75">Regístrate para realizar pedidos, agendar servicios y consultar tu historial en {{ portal.get('nombre_publico') or empresa.get('nombre') }}</small>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('portal.registro', slug=slug) }}" method="POST">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tipo Doc. *</label>
+                            <select name="tipo_documento" class="form-select">
+                                <option value="CC">Cédula (CC)</option>
+                                <option value="NIT">NIT</option>
+                                <option value="CE">Cédula Extranjería</option>
+                                <option value="PAS">Pasaporte</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Número de Documento *</label>
+                            <input type="text" name="documento" class="form-control" required placeholder="Ej: 1020304050">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Apellido</label>
+                            <input type="text" name="apellido" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Correo Electrónico *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono Móvil *</label>
+                            <input type="text" name="telefono" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Dirección Principal de Entrega</label>
+                            <input type="text" name="direccion" class="form-control" placeholder="Calle 100 # 15 - 20">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ciudad</label>
+                            <input type="text" name="ciudad" class="form-control" placeholder="Bogotá">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Contraseña Segura * (mínimo 8 caracteres, letras y números)</label>
+                        <input type="password" name="password" class="form-control" minlength="8" required>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-portal btn-lg">Registrarme Ahora</button>
+                    </div>
+                </form>
+                <div class="text-center small">
+                    ¿Ya tienes cuenta? <a href="{{ url_for('portal.login', slug=slug) }}" class="fw-bold">Inicia sesión aquí</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

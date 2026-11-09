@@ -4,6 +4,15 @@
 *.swp
 *.swo
 
+# Python & Local Databases
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.db
+*.sqlite3
+
 # OS files
 Thumbs.db
 Desktop.ini

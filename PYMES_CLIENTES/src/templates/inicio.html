@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Banner Principal de la Empresa -->
+<div class="hero-banner mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-light text-dark mb-2 px-3 py-2 fw-bold">Portal Oficial de Clientes</span>
+            <h1 class="display-5 fw-bold mb-2">{{ portal.get('nombre_publico') or empresa.get('nombre') }}</h1>
+            <p class="lead mb-3 opacity-90">{{ portal.get('eslogan') or portal.get('descripcion') }}</p>
+            {% if portal.get('mensaje_promocional') %}
+                <p class="small opacity-75 mb-4">{{ portal.get('mensaje_promocional') }}</p>
+            {% endif %}
+            <div class="d-flex flex-wrap gap-2">
+                {% if portal.get('mostrar_catalogo', True) %}
+                    <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-light btn-lg fw-bold text-dark">📦 Ver Catálogo de Productos</a>
+                {% endif %}
+                {% if portal.get('mostrar_servicios', True) %}
+                    <a href="{{ url_for('portal.servicios', slug=slug) }}" class="btn btn-outline-light btn-lg fw-bold">🛠️ Servicios y Citas</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+            <div class="bg-white text-dark p-3 rounded-4 shadow-sm text-start">
+                <h6 class="fw-bold text-primary mb-2">📍 Información de Atención</h6>
+                <p class="small mb-1"><strong>Dirección:</strong> {{ portal.get('direccion') or empresa.get('direccion') or 'Atención Digital' }}</p>
+                <p class="small mb-1"><strong>Teléfono:</strong> {{ portal.get('telefono_contacto') or empresa.get('telefono') or 'N/A' }}</p>
+                <p class="small mb-1"><strong>Horario:</strong> {{ portal.get('horario_atencion') or 'Lunes a Sábado' }}</p>
+                <p class="small mb-0"><strong>Entregas:</strong> {{ portal.get('modalidades_entrega_str') or 'Domicilio, Recoger en tienda' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productos Destacados -->
+{% if portal.get('mostrar_catalogo', True) %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">⭐ Productos Destacados</h3>
+    <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-sm btn-outline-primary fw-bold">Ver todo el catálogo →</a>
+</div>
+<div class="row g-4 mb-5">
+    {% for p in productos_destacados %}
+    <div class="col-md-3 col-sm-6">
+        <div class="card product-card h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary">{{ p.get('categoria_nombre') or 'Producto' }}</span>
+                        {% if p.get('destacado') %}
+                            <span class="badge bg-warning text-dark">⭐ Destacado</span>
+                        {% endif %}
+                    </div>
+                    <h5 class="card-title fw-bold">
+                        <a href="{{ url_for('portal.detalle_producto', slug=slug, producto_id=p.id) }}" class="text-decoration-none text-dark">{{ p.nombre }}</a>
+                    </h5>
+                    <p class="text-muted small">{{ (p.get('descripcion') or '')[:90] }}</p>
+                </div>
+                <div>
+                    {% if p.get('precio') is not none %}
+                        <h4 class="fw-bold text-success mb-2">${{ "{:,.2f}".format(p.precio) }}</h4>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('portal.detalle_producto', slug=slug, producto_id=p.id) }}" class="btn btn-outline-secondary btn-sm w-50">Detalle</a>
+                        {% if portal.get('permitir_pedidos', True) and p.get('disponible') %}
+                        <form action="{{ url_for('portal.carrito_agregar', slug=slug) }}" method="POST" class="w-50">
+                            <input type="hidden" name="id_producto" value="{{ p.id }}">
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" class="btn btn-portal btn-sm w-100">+ Carrito</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-light border text-center py-4">Aún no hay productos destacados publicados en este portal.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Servicios Destacados -->
+{% if portal.get('mostrar_servicios', True) and servicios %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">🛠️ Nuestros Servicios</h3>
+    <a href="{{ url_for('portal.servicios', slug=slug) }}" class="btn btn-sm btn-outline-primary fw-bold">Ver todos los servicios →</a>
+</div>
+<div class="row g-4">
+    {% for s in servicios[:4] %}
+    <div class="col-md-6">
+        <div class="card product-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-info text-dark mb-1">{{ s.get('categoria') }} · ⏱️ {{ s.get('duracion_minutos') }} min</span>
+                    <h5 class="fw-bold mb-1">{{ s.get('nombre') }}</h5>
+                    <p class="text-muted small mb-2">{{ s.get('descripcion') }}</p>
+                    {% if s.get('precio') is not none %}
+                        <strong class="text-success">${{ "{:,.0f}".format(s.get('precio') or 0) }}</strong>
+                    {% endif %}
+                </div>
+                {% if portal.get('permitir_reservas', True) and s.get('requiere_reserva') %}
+                <a href="{{ url_for('portal.reservar', slug=slug, servicio_id=s.id) }}" class="btn btn-portal btn-sm ms-3">📅 Agendar</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

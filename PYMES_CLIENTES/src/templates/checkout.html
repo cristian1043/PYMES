@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('portal.carrito', slug=slug) }}" class="btn btn-sm btn-outline-secondary">← Volver al Carrito</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold">📦 Datos de Entrega y Pago del Pedido</div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('portal.checkout', slug=slug) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Modalidad de Entrega *</label>
+                        <select name="modalidad_entrega" class="form-select" required>
+                            {% for mod in portal.get('modalidades_entrega', ['Domicilio', 'Recoger en tienda']) %}
+                                <option value="{{ mod }}">{{ mod }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Dirección de Entrega *</label>
+                            <input type="text" name="direccion_entrega" class="form-control" value="{{ cliente.get('direccion_principal') or '' }}" required placeholder="Calle / Carrera / Número / Apto">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ciudad *</label>
+                            <input type="text" name="ciudad_entrega" class="form-control" value="{{ cliente.get('ciudad') or '' }}" required placeholder="Bogotá, Medellín...">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono de Contacto *</label>
+                            <input type="text" name="telefono_contacto" class="form-control" value="{{ cliente.get('telefono') or '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Método de Pago Preferido *</label>
+                            <select name="id_metodo_pago" class="form-select">
+                                {% for m in metodos_pago %}
+                                    <option value="{{ m.id }}">{{ m.nombre }}</option>
+                                {% else %}
+                                    <option value="1">Efectivo / Contraentrega</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Notas u Observaciones para la Entrega</label>
+                        <textarea name="notas_cliente" class="form-control" rows="2" placeholder="Indicaciones adicionales para el mensajero o despacho..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-portal btn-lg w-100">✅ Confirmar y Enviar Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light fw-bold">🧾 Resumen Verificado en Servidor</div>
+            <ul class="list-group list-group-flush">
+                {% for it in resumen.get('items', []) %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ it.nombre_producto }}</strong>
+                        <div class="small text-muted">{{ it.cantidad }} x ${{ "{:,.2f}".format(it.precio_unitario or 0) }}</div>
+                    </div>
+                    <span class="fw-bold">${{ "{:,.2f}".format(it.subtotal or 0) }}</span>
+                </li>
+                {% endfor %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Subtotal:</span>
+                    <strong>${{ "{:,.2f}".format(resumen.get('subtotal') or 0) }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Costo de Envío:</span>
+                    <span>${{ "{:,.2f}".format(resumen.get('costo_envio') or 0) }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between bg-light">
+                    <span class="fs-5 fw-bold">Total a Pagar:</span>
+                    <span class="fs-5 fw-bold text-success">${{ "{:,.2f}".format(resumen.get('total') or 0) }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

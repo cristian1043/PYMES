@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">🛒 Tu Carrito de Compras</h2>
+    <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-outline-secondary btn-sm">← Seguir Comprando</a>
+</div>
+
+{% set items = resumen.get('items', []) %}
+{% if items %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Precio Unit.</th>
+                                <th class="text-center" style="width: 170px;">Cantidad</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for it in items %}
+                            <tr>
+                                <td>
+                                    <strong class="text-dark">{{ it.nombre_producto }}</strong><br>
+                                    <small class="text-muted">Código: <code>{{ it.codigo_producto }}</code> · Disponible: {{ it.stock_disponible }}</small>
+                                </td>
+                                <td class="text-center">${{ "{:,.2f}".format(it.precio_unitario or 0) }}</td>
+                                <td class="text-center">
+                                    <form action="{{ url_for('portal.carrito_actualizar', slug=slug) }}" method="POST" class="d-flex gap-1 justify-content-center">
+                                        <input type="hidden" name="id_producto" value="{{ it.id_producto }}">
+                                        <input type="number" name="cantidad" value="{{ it.cantidad }}" min="0" max="{{ it.stock_disponible }}" class="form-control form-control-sm text-center" style="width: 70px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">↻</button>
+                                    </form>
+                                </td>
+                                <td class="text-end fw-bold">${{ "{:,.2f}".format(it.subtotal or 0) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-between">
+                <form action="{{ url_for('portal.carrito_vaciar', slug=slug) }}" method="POST">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Vaciar Carrito</button>
+                </form>
+                <small class="text-muted">Precios y disponibilidad validados en tiempo real con el inventario de la empresa.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold">Resumen del Pedido</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal Productos:</span>
+                    <strong>${{ "{:,.2f}".format(resumen.get('subtotal') or 0) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Costo Base Domicilio:</span>
+                    <span>${{ "{:,.2f}".format(resumen.get('costo_envio') or 0) }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fs-5 fw-bold">Total Estimado:</span>
+                    <span class="fs-5 fw-bold text-success">${{ "{:,.2f}".format(resumen.get('total') or 0) }}</span>
+                </div>
+                <a href="{{ url_for('portal.checkout', slug=slug) }}" class="btn btn-portal btn-lg w-100">
+                    Continuar al Checkout →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm p-5 text-center">
+    <div style="font-size: 3.5rem;">🛒</div>
+    <h4 class="fw-bold mt-3">Tu carrito de compras está vacío</h4>
+    <p class="text-muted">Explora el catálogo de productos de la empresa y agrega los artículos que desees pedir.</p>
+    <div>
+        <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-portal px-4">Ir al Catálogo de Productos</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

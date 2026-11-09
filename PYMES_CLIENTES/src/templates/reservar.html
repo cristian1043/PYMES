@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white py-3">
+                <h4 class="mb-0 fw-bold">📅 Agendar Cita o Reserva de Servicio</h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Selector de Servicio y Fecha para consultar disponibilidad en vivo -->
+                <form action="{{ url_for('portal.reservar', slug=slug) }}" method="GET" class="row g-3 mb-4 pb-3 border-bottom">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">1. Selecciona el Servicio</label>
+                        <select name="id_servicio" class="form-select" onchange="this.form.submit()">
+                            {% for s in servicios %}
+                                <option value="{{ s.id }}" {% if servicio_seleccionado == s.id %}selected{% endif %}>
+                                    {{ s.nombre }} ({{ s.duracion_minutos }} min — ${{ "{:,.0f}".format(s.precio or 0) }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">2. Fecha Deseada</label>
+                        <input type="date" name="fecha" class="form-control" value="{{ fecha_seleccionada }}" onchange="this.form.submit()">
+                    </div>
+                    <div class="col-md-2 d-grid align-items-end">
+                        <button type="submit" class="btn btn-outline-primary">Ver Horas</button>
+                    </div>
+                </form>
+
+                <!-- Formulario de Confirmación de Reserva -->
+                <form action="{{ url_for('portal.reservar', slug=slug) }}" method="POST">
+                    <input type="hidden" name="id_servicio" value="{{ servicio_seleccionado }}">
+                    <input type="hidden" name="fecha_reserva" value="{{ fecha_seleccionada }}">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">3. Elige una Franja Horaria Disponible *</label>
+                        <div class="row g-2">
+                            {% for h in horarios %}
+                            <div class="col-md-3 col-6">
+                                <input type="radio" class="btn-check" name="hora_inicio" id="slot_{{ loop.index }}" value="{{ h.hora_inicio }}" {% if not h.disponible %}disabled{% endif %} required>
+                                <label class="btn {% if h.disponible %}btn-outline-success{% else %}btn-outline-secondary disabled{% endif %} w-100 btn-sm py-2" for="slot_{{ loop.index }}">
+                                    ⏰ {{ h.hora_inicio }} - {{ h.hora_fin }}
+                                    {% if not h.disponible %}<br><small>(Ocupado)</small>{% endif %}
+                                </label>
+                            </div>
+                            {% else %}
+                            <div class="col-12">
+                                <input type="time" name="hora_inicio" class="form-control" value="09:00" required>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Notas o requerimientos especiales para tu cita</label>
+                        <textarea name="notas_cliente" class="form-control" rows="2" placeholder="Indica cualquier detalle importante para el equipo..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('portal.servicios', slug=slug) }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-portal px-4">✅ Confirmar Reserva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

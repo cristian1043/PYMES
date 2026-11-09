@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-sm btn-outline-secondary">← Volver al Catálogo</a>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="row align-items-center">
+        <div class="col-md-5 text-center mb-4 mb-md-0">
+            {% if producto.get('imagen') %}
+                <img src="{{ producto.get('imagen') }}" alt="{{ producto.nombre }}" class="img-fluid rounded-4 shadow-sm" style="max-height: 320px;">
+            {% else %}
+                <div class="bg-light rounded-4 d-flex align-items-center justify-content-center py-5" style="height: 260px; font-size: 4rem;">
+                    📦
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <span class="badge bg-primary mb-2">{{ producto.get('categoria_nombre') or 'Catálogo Oficial' }}</span>
+            <h2 class="fw-bold mb-1">{{ producto.nombre }}</h2>
+            <p class="text-muted small mb-3">Código de Referencia: <code>{{ producto.codigo }}</code> · Unidad: {{ producto.get('unidad_medida', 'UND') }}</p>
+
+            {% if producto.get('precio') is not none %}
+                <h2 class="fw-bold text-success mb-3">${{ "{:,.2f}".format(producto.precio) }}</h2>
+            {% endif %}
+
+            <p class="mb-4">{{ producto.get('descripcion') or 'Producto disponible en nuestro catálogo oficial.' }}</p>
+
+            <div class="mb-4">
+                {% if producto.get('disponible') %}
+                    <span class="badge bg-success p-2">✅ Disponible en inventario ({{ producto.get('stock') }} unidades)</span>
+                {% else %}
+                    <span class="badge bg-danger p-2">❌ Temporalmente agotado</span>
+                {% endif %}
+            </div>
+
+            {% if portal.get('permitir_pedidos', True) and producto.get('disponible') %}
+            <form action="{{ url_for('portal.carrito_agregar', slug=slug) }}" method="POST" class="row g-2 align-items-center">
+                <input type="hidden" name="id_producto" value="{{ producto.id }}">
+                <div class="col-auto">
+                    <label class="fw-bold me-2">Cantidad:</label>
+                </div>
+                <div class="col-auto" style="width: 110px;">
+                    <input type="number" name="cantidad" class="form-control" value="1" min="1" max="{{ producto.get('stock', 1) }}" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-portal btn-lg px-4">🛒 Agregar al Carrito</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

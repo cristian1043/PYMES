@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">👤 Hola, {{ cliente.get('nombre_completo') or cliente.get('nombre') }}</h2>
+        <p class="text-muted mb-0">Tu área privada de cliente en <strong>{{ portal.get('nombre_publico') or empresa.get('nombre') }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('portal.catalogo', slug=slug) }}" class="btn btn-outline-primary btn-sm fw-bold">📦 Nuevo Pedido</a>
+        <a href="{{ url_for('portal.reservar', slug=slug) }}" class="btn btn-outline-info btn-sm fw-bold">📅 Agendar Servicio</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Columna Izquierda: Perfil y Libreta de Direcciones -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark text-white fw-bold">Mi Perfil Personal</div>
+            <div class="card-body">
+                <form action="{{ url_for('portal.actualizar_perfil', slug=slug) }}" method="POST">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Documento ({{ cliente.get('tipo_documento') }})</label>
+                        <input type="text" class="form-control form-control-sm bg-light" value="{{ cliente.get('documento') }}" readonly>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Nombre</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm" value="{{ cliente.get('nombre') }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Apellido</label>
+                            <input type="text" name="apellido" class="form-control form-control-sm" value="{{ cliente.get('apellido') or '' }}">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Teléfono</label>
+                        <input type="text" name="telefono" class="form-control form-control-sm" value="{{ cliente.get('telefono') or '' }}">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Dirección Principal</label>
+                        <input type="text" name="direccion_principal" class="form-control form-control-sm" value="{{ cliente.get('direccion_principal') or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Ciudad</label>
+                        <input type="text" name="ciudad" class="form-control form-control-sm" value="{{ cliente.get('ciudad') or '' }}">
+                    </div>
+                    <button type="submit" class="btn btn-portal btn-sm w-100">💾 Actualizar Mis Datos</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Libreta de Direcciones -->
+        <div id="direcciones" class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white fw-bold">📍 Mis Direcciones de Entrega</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-3">
+                    {% for d in cliente.get('direcciones', []) %}
+                    <li class="list-group-item px-0 py-2 small">
+                        <strong>{{ d.alias }}</strong> {% if d.es_principal %}<span class="badge bg-success">Principal</span>{% endif %}<br>
+                        {{ d.direccion }} ({{ d.ciudad }})
+                    </li>
+                    {% else %}
+                    <li class="list-group-item px-0 text-muted small">Sin direcciones adicionales.</li>
+                    {% endfor %}
+                </ul>
+                <form action="{{ url_for('portal.agregar_direccion', slug=slug) }}" method="POST">
+                    <div class="row g-2 mb-2">
+                        <div class="col-5">
+                            <input type="text" name="alias" class="form-control form-control-sm" placeholder="Alias (Oficina)" required>
+                        </div>
+                        <div class="col-7">
+                            <input type="text" name="ciudad" class="form-control form-control-sm" placeholder="Ciudad" required>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" name="direccion" class="form-control form-control-sm" placeholder="Dirección completa..." required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">+ Guardar Dirección</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Pedidos, Reservas, Facturas, Solicitudes y Notificaciones -->
+    <div class="col-lg-8">
+        <!-- Mis Pedidos -->
+        <div id="pedidos" class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white fw-bold">🛍️ Mis Pedidos en esta Empresa</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Pedido</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Pago</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pedidos %}
+                            <tr>
+                                <td class="fw-bold"><code>{{ p.numero }}</code></td>
+                                <td class="small">{{ (p.created_at or '')[:16] }}</td>
+                                <td class="fw-bold text-success">${{ "{:,.2f}".format(p.total or 0) }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ p.estado_pago }}</span></td>
+                                <td><span class="badge bg-info text-dark">{{ p.estado }}</span></td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('portal.detalle_pedido_cliente', slug=slug, pedido_id=p.id) }}" class="btn btn-sm btn-outline-primary fw-bold">Ver / Pagar</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-3">Aún no has realizado pedidos en esta empresa.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Reservas / Citas -->
+        <div id="reservas" class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-info text-dark fw-bold">📅 Mis Citas y Reservas de Servicios</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Reserva</th>
+                                <th>Servicio</th>
+                                <th>Fecha y Hora</th>
+                                <th>Estado</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in reservas %}
+                            <tr>
+                                <td><code>{{ r.numero }}</code></td>
+                                <td class="fw-bold">{{ r.nombre_servicio }}</td>
+                                <td class="small">{{ r.fecha_reserva }} · {{ r.hora_inicio }} - {{ r.hora_fin }}</td>
+                                <td><span class="badge bg-secondary">{{ r.estado }}</span></td>
+                                <td class="text-end">
+                                    {% if r.estado in ['Pendiente', 'Confirmada'] %}
+                                    <form action="{{ url_for('portal.cancelar_reserva_cliente', slug=slug, reserva_id=r.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">No tienes citas programadas en esta empresa.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Facturas Comerciales y Verificación OTP -->
+        <div id="facturas" class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold">🧾 Mis Facturas Emitidas por la Empresa</span>
+                <form action="{{ url_for('portal.solicitar_vinculacion', slug=slug) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-light fw-bold">🔐 Solicitar OTP de Vinculación</button>
+                </form>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('portal.confirmar_vinculacion', slug=slug) }}" method="POST" class="row g-2 mb-3 align-items-center">
+                    <div class="col-md-8">
+                        <input type="text" name="codigo" class="form-control form-control-sm" placeholder="Si tenías facturas previas en tienda física, ingresa el código OTP enviado a tu correo">
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <button type="submit" class="btn btn-sm btn-outline-success fw-bold">Verificar Vínculo Comercial</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Factura</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in facturas %}
+                            <tr>
+                                <td><code>{{ f.numero }}</code></td>
+                                <td>{{ f.fecha }}</td>
+                                <td class="fw-bold">${{ "{:,.2f}".format(f.total or 0) }}</td>
+                                <td><span class="badge bg-success">{{ f.estado }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-2 small">Sin facturas registradas o pendientes de verificación.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Solicitudes PQRS y Notificaciones -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light fw-bold">💬 Mis Consultas y Reclamos</div>
+                    <ul class="list-group list-group-flush">
+                        {% for s in solicitudes %}
+                        <li class="list-group-item small">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ s.radicado }} · {{ s.asunto }}</strong>
+                                <span class="badge bg-secondary">{{ s.estado }}</span>
+                            </div>
+                            <div class="text-muted">{{ s.mensaje }}</div>
+                            {% if s.respuesta %}
+                                <div class="mt-1 text-success fw-bold">↳ Respuesta: {{ s.respuesta }}</div>
+                            {% endif %}
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted small">Sin solicitudes registradas.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light fw-bold">🔔 Mis Notificaciones</div>
+                    <ul class="list-group list-group-flush">
+                        {% for n in notificaciones[:6] %}
+                        <li class="list-group-item small">
+                            <strong>{{ n.titulo }}</strong>
+                            <div class="text-muted">{{ n.mensaje }}</div>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted small">No tienes notificaciones nuevas.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

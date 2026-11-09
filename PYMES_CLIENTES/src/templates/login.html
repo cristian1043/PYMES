@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0 fw-bold">🔐 Acceso de Clientes</h4>
+                <small class="opacity-75">{{ portal.get('nombre_publico') or empresa.get('nombre') }}</small>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('portal.login', slug=slug) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Correo Electrónico *</label>
+                        <input type="email" name="email" class="form-control" required placeholder="tu@correo.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Contraseña *</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-portal btn-lg">Ingresar a Mi Cuenta</button>
+                    </div>
+                </form>
+                <div class="d-flex justify-content-between small">
+                    <a href="{{ url_for('portal.recuperar_password', slug=slug) }}">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ url_for('portal.registro', slug=slug) }}" class="fw-bold">Crear cuenta de cliente →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

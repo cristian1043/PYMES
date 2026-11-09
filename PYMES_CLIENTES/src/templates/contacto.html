@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3">📍 Canales de Atención Oficial</h4>
+                <p class="text-muted">{{ portal.get('descripcion') }}</p>
+                <hr>
+                <p class="mb-2"><strong>📞 Teléfono:</strong> {{ portal.get('telefono_contacto') or empresa.get('telefono') or 'N/A' }}</p>
+                <p class="mb-2"><strong>💬 WhatsApp:</strong> {{ portal.get('whatsapp') or 'N/A' }}</p>
+                <p class="mb-2"><strong>✉️ Correo:</strong> {{ portal.get('email_contacto') or empresa.get('email') or 'N/A' }}</p>
+                <p class="mb-2"><strong>📍 Dirección:</strong> {{ portal.get('direccion') or empresa.get('direccion') or 'N/A' }}</p>
+                <p class="mb-3"><strong>⏰ Horario:</strong> {{ portal.get('horario_atencion') or 'Lunes a Sábado' }}</p>
+
+                {% if portal.get('condiciones_servicio') %}
+                <div class="alert alert-light border small mb-0">
+                    <strong>Políticas y Condiciones:</strong><br>
+                    {{ portal.get('condiciones_servicio') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold py-3">
+                💬 Enviar Consulta, Solicitud o Reclamo (PQRS)
+            </div>
+            <div class="card-body p-4">
+                {% set cuenta = session.get('cliente_cuenta', {}) %}
+                <form action="{{ url_for('portal.contacto', slug=slug) }}" method="POST">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tu Nombre *</label>
+                            <input type="text" name="nombre_contacto" class="form-control" value="{{ cuenta.get('nombre_completo') or cuenta.get('nombre') or '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Correo Electrónico *</label>
+                            <input type="email" name="email_contacto" class="form-control" value="{{ cuenta.get('email') or '' }}" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono</label>
+                            <input type="text" name="telefono_contacto" class="form-control" value="{{ cuenta.get('telefono') or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tipo de Solicitud *</label>
+                            <select name="tipo" class="form-select">
+                                <option value="Consulta">Consulta Comercial</option>
+                                <option value="Solicitud">Solicitud de Soporte</option>
+                                <option value="Reclamo">Reclamo / Garantía</option>
+                                <option value="Sugerencia">Sugerencia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Asunto *</label>
+                        <input type="text" name="asunto" class="form-control" required placeholder="Resumen breve de tu mensaje">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mensaje Detallado *</label>
+                        <textarea name="mensaje" class="form-control" rows="4" required placeholder="Describe tu inquietud o solicitud..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-portal px-4">📨 Enviar Mensaje a la Empresa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

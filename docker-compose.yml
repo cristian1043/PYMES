@@ -9,8 +9,41 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=production
-      - JWT_SECRET_KEY=pymes-jwt-secret-key-2026-secure-key-32bytes
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///pymes.db}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-key-change-in-production-32b}
+      - PAGOS_ENC_KEY=${PAGOS_ENC_KEY:-dev-pagos-enc-key-change-in-production-32b}
+    restart: unless-stopped
+
+  frontend-admin:
+    build:
+      context: ./PYMES_FE
+      dockerfile: Dockerfile
+    container_name: pymes_frontend_admin
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - API_BASE_URL=http://backend:5000/api
+      - PORTAL_CLIENTES_URL=http://localhost:5002
+      - SECRET_KEY=${FE_SECRET_KEY:-dev-admin-secret-key-change-in-production}
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  frontend-clientes:
+    build:
+      context: ./PYMES_CLIENTES
+      dockerfile: Dockerfile
+    container_name: pymes_frontend_clientes
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - API_BASE_URL=http://backend:5000/api
+      - SECRET_KEY=${CLIENTES_SECRET_KEY:-dev-clientes-secret-key-change-in-production}
+    depends_on:
+      - backend
     restart: unless-stopped
 
   frontend-movil:
